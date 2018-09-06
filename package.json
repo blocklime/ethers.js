@@ -1,7 +1,7 @@
 {
-  "name": "ethers",
+  "name": "@blocklime/ethers",
   "version": "3.0.27",
-  "description": "Ethereum wallet library.",
+  "description": "Fork of ethers.js modified to be compatible with react native",
   "main": "index.js",
   "scripts": {
     "eslint": "eslint index.js contracts/*.js providers/*.js utils/*.js wallet/*.js",
@@ -50,7 +50,7 @@
   "author": "Richard Moore <me@ricmoo.com>",
   "repository": {
     "type": "git",
-    "url": "git://github.com/ethers-io/ethers-wallet.git"
+    "url": "git@github.com:blocklime/ethers.js.git"
   },
   "license": "MIT"
 }

@@ -1,3 +1,59 @@
+	{
+		var characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+		var result     = '';
+
+		var i = 0;
+		do {
+			var a = string.charCodeAt(i++);
+			var b = string.charCodeAt(i++);
+			var c = string.charCodeAt(i++);
+
+			a = a ? a : 0;
+			b = b ? b : 0;
+			c = c ? c : 0;
+
+			var b1 = ( a >> 2 ) & 0x3F;
+			var b2 = ( ( a & 0x3 ) << 4 ) | ( ( b >> 4 ) & 0xF );
+			var b3 = ( ( b & 0xF ) << 2 ) | ( ( c >> 6 ) & 0x3 );
+			var b4 = c & 0x3F;
+
+			if( ! b ) {
+				b3 = b4 = 64;
+			} else if( ! c ) {
+				b4 = 64;
+			}
+
+			result += Base64.characters.charAt( b1 ) + Base64.characters.charAt( b2 ) + Base64.characters.charAt( b3 ) + Base64.characters.charAt( b4 );
+
+		} while ( i < string.length );
+
+		return result;
+	}
+	
+  function btoa ( string ) {
+		var characters: "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+		var result     = '';
+
+		var i = 0;
+		do {
+			var b1 = Base64.characters.indexOf( string.charAt(i++) );
+			var b2 = Base64.characters.indexOf( string.charAt(i++) );
+			var b3 = Base64.characters.indexOf( string.charAt(i++) );
+			var b4 = Base64.characters.indexOf( string.charAt(i++) );
+
+			var a = ( ( b1 & 0x3F ) << 2 ) | ( ( b2 >> 4 ) & 0x3 );
+			var b = ( ( b2 & 0xF  ) << 4 ) | ( ( b3 >> 2 ) & 0xF );
+			var c = ( ( b3 & 0x3  ) << 6 ) | ( b4 & 0x3F );
+
+			result += String.fromCharCode(a) + (b?String.fromCharCode(b):'') + (c?String.fromCharCode(c):'');
+
+		} while( i < string.length );
+
+		return result;
+  }
+  
+
+  function atob ( string )
 (function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ethers = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 'use strict';
 
