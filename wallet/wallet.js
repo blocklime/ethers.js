@@ -133,8 +133,8 @@ function Wallet(privateKey, provider) {
         }
 
         raw.push(utils.hexlify(v));
-        raw.push(signature.r);
-        raw.push(signature.s);
+        raw.push(utils.stripZeros(utils.arrayify(signature.r)));
+        raw.push(utils.stripZeros(utils.arrayify(signature.s)));
 
         return utils.RLP.encode(raw);
     });
@@ -416,9 +416,10 @@ utils.defineProperty(Wallet, 'fromEncryptedWallet', function(json, password, pro
                     utils.defineProperty(wallet, 'path', signingKey.path);
                 }
                 resolve(wallet);
+                return null;
             }, function(error) {
                 reject(error);
-            });
+            }).catch(function(error) { reject(error); });
 
         } else {
             reject('invalid wallet JSON');

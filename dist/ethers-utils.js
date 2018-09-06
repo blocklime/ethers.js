@@ -1,4 +1,4 @@
-(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ethers = f()}})(function(){var define,module,exports;return (function(){function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s}return e})()({1:[function(require,module,exports){
+(function(f){if(typeof exports==="object"&&typeof module!=="undefined"){module.exports=f()}else if(typeof define==="function"&&define.amd){define([],f)}else{var g;if(typeof window!=="undefined"){g=window}else if(typeof global!=="undefined"){g=global}else if(typeof self!=="undefined"){g=self}else{g=this}g.ethers = f()}})(function(){var define,module,exports;return (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
 (function (module, exports) {
   'use strict';
 
@@ -5094,7 +5094,7 @@ var defaultCoerceFunc = function(type, value) {
     return value;
 }
 
-// Recursively copies any serial
+// Shallow copy object (will move to utils/properties in v4)
 function shallowCopy(object) {
     var result = {};
     for (var key in object) { result[key] = object[key]; }
@@ -5398,10 +5398,11 @@ var coderNumber = function(coerceFunc, size, signed, localName) {
                 });
             }
             value = value.toTwos(size * 8).maskn(size * 8);
-            //value = value.toTwos(size * 8).maskn(size * 8);
+
             if (signed) {
                 value = value.fromTwos(size * 8).toTwos(256);
             }
+
             return utils.padZeros(utils.arrayify(value), 32);
         },
         decode: function(data, offset) {
@@ -5439,7 +5440,7 @@ var coderBoolean = function(coerceFunc, localName) {
         encode: function(value) {
            return uint256Coder.encode(!!value ? 1: 0);
         },
-       decode: function(data, offset) {
+        decode: function(data, offset) {
             try {
                 var result = uint256Coder.decode(data, offset);
             } catch (error) {
@@ -5469,6 +5470,14 @@ var coderFixedBytes = function(coerceFunc, length, localName) {
         encode: function(value) {
             try {
                 value = utils.arrayify(value);
+
+                // @TODO: In next major change, the value.length MUST equal the
+                // length, but that is a backward-incompatible change, so here
+                // we just check for things that can cause problems.
+                if (value.length > 32) {
+                    throw new Error('too many bytes for field');
+                }
+
             } catch (error) {
                 errors.throwError('invalid ' + name + ' value', errors.INVALID_ARGUMENT, {
                     arg: localName,
@@ -5476,7 +5485,8 @@ var coderFixedBytes = function(coerceFunc, length, localName) {
                     value: error.value
                 });
             }
-            if (length === 32) { return value; }
+
+            if (value.length === 32) { return value; }
 
             var result = new Uint8Array(32);
             result.set(value);
@@ -5815,8 +5825,17 @@ function coderArray(coerceFunc, coder, length, localName) {
                  offset += decodedLength.consumed;
             }
 
+            // We don't want the children to have a localName
+            var subCoder = {
+                name: coder.name,
+                type: coder.type,
+                encode: coder.encode,
+                decode: coder.decode,
+                dynamic: coder.dynamic
+            };
+
             var coders = [];
-            for (var i = 0; i < count; i++) { coders.push(coder); }
+            for (var i = 0; i < count; i++) { coders.push(subCoder); }
 
             var result = unpack(coders, data, offset);
             result.consumed += consumed;
